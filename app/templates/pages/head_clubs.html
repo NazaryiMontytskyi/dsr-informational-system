@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Мої гуртки{% endblock %}
+{% block content %}
+<h2 class="mb-3">Мої гуртки</h2>
+{% if not clubs %}
+<p class="text-muted">У вас поки немає гуртків.</p>
+{% else %}
+<table class="table bg-white">
+    <thead><tr><th>Назва</th><th>Спрямування</th><th>Статус</th><th></th></tr></thead>
+    <tbody>
+        {% for club in clubs %}
+        <tr>
+            <td>{{ club.name }}</td>
+            <td>{{ club.direction | direction_label }}</td>
+            <td><span class="badge text-bg-secondary">{{ club.status | status_badge }}</span></td>
+            <td><a class="btn btn-sm btn-outline-primary" href="/my/clubs/{{ club.id }}">Відкрити</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

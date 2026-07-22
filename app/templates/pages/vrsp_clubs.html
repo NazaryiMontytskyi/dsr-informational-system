@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Гуртки — ВРСП{% endblock %}
+{% block content %}
+<h2 class="mb-3">Гуртки</h2>
+<ul class="nav nav-tabs mb-3">
+    {% for status, label in tabs %}
+    <li class="nav-item">
+        <a class="nav-link {% if status == current_status %}active{% endif %}" href="/vrsp/clubs?status={{ status.value }}">{{ label }}</a>
+    </li>
+    {% endfor %}
+</ul>
+
+{% if not clubs %}
+<p class="text-muted">Немає гуртків у цьому статусі.</p>
+{% else %}
+<table class="table bg-white">
+    <thead><tr><th>Назва</th><th>Спрямування</th><th>Підрозділ</th><th>Подано</th><th></th></tr></thead>
+    <tbody>
+        {% for club in clubs %}
+        <tr>
+            <td>{{ club.name }}</td>
+            <td>{{ club.direction | direction_label }}</td>
+            <td>{{ club.faculty.name }}</td>
+            <td>{{ club.created_at.strftime("%d.%m.%Y") }}</td>
+            <td><a class="btn btn-sm btn-outline-primary" href="/vrsp/clubs/{{ club.id }}">Відкрити</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

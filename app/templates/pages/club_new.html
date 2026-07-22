@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% block title %}Створити гурток{% endblock %}
+{% block content %}
+<h2 class="mb-3">Створення гуртка</h2>
+<div class="alert alert-info">
+    Перш ніж заповнювати форму, ознайомтеся з особливостями ведення гуртка: оберіть спрямування,
+    яке відповідатиме назві, продумайте склад керівництва (не більше {{ max_heads }} осіб) та підготуйте,
+    за потреби, власний проєкт Положення про гурток у форматі PDF.
+</div>
+
+{% if errors %}
+<div class="alert alert-danger">
+    <ul class="mb-0">
+        {% for e in errors %}<li>{{ e }}</li>{% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<form method="post" action="/clubs/new" enctype="multipart/form-data">
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Основна інформація</h5>
+            <div class="mb-3">
+                <label class="form-label">Назва майбутнього гуртка</label>
+                <input type="text" name="name" class="form-control" minlength="{{ name_min }}" maxlength="{{ name_max }}" required>
+                <div class="form-text">Від {{ name_min }} до {{ name_max }} символів.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Оберіть спрямування</label>
+                <select name="direction" class="form-select" required>
+                    <option value="" selected disabled>— оберіть —</option>
+                    {% for d in directions %}
+                    <option value="{{ d.value }}">{{ direction_labels[d] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Оберіть підрозділ, за яким буде закріплено гурток</label>
+                <select name="faculty_id" class="form-select" required>
+                    <option value="" selected disabled>— оберіть факультет або інститут —</option>
+                    {% for f in faculties %}
+                    <option value="{{ f.id }}">{{ f.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Положення про гурток</h5>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="regulation_type" value="standard" id="reg-standard" checked>
+                <label class="form-check-label" for="reg-standard">Обираю типове Положення в якості основи для свого гуртка</label>
+            </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="radio" name="regulation_type" value="custom" id="reg-custom">
+                <label class="form-check-label" for="reg-custom">Прикріпити власний проєкт Положення (PDF)</label>
+            </div>
+            <input type="file" name="regulation_file" accept="application/pdf" class="form-control" id="regulation-file-input" disabled>
+        </div>
+    </div>
+
+    {% for i in range(1, max_heads + 1) %}
+    <div class="card mb-3 head-block {% if i > 1 %}d-none{% endif %}" id="head-block-{{ i }}">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{% if i == 1 %}Керівник гуртка{% else %}Співкерівник {{ i }}{% endif %}</h5>
+                {% if i > 1 %}
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeHead({{ i }})">Видалити співкерівника</button>
+                {% endif %}
+            </div>
+            <div class="mb-3">
+                <label class="form-label">ПІБ керівника</label>
+                <input type="text" name="head_{{ i }}_full_name" class="form-control"
+                       minlength="{{ full_name_min }}" maxlength="{{ full_name_max }}" {% if i == 1 %}required{% endif %}>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email (@edu.kpi.ua) — для створення облікового запису після реєстрації гуртка</label>
+                <input type="email" name="head_{{ i }}_email" class="form-control">
+            </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input not-pedagogical-toggle" type="checkbox" name="head_{{ i }}_not_pedagogical" id="head-{{ i }}-not-pedagogical" onchange="toggleNotPedagogical({{ i }})">
+                <label class="form-check-label" for="head-{{ i }}-not-pedagogical">Не є педагогічним або науково-педагогічним працівником</label>
+            </div>
+
+            <div id="head-{{ i }}-pedagogical-fields">
+                <div class="mb-3">
+                    <label class="form-label">Оберіть посаду керівника</label>
+                    <select name="head_{{ i }}_position_type" class="form-select">
+                        <option value="" selected disabled>— оберіть —</option>
+                        {% for p in positions %}
+                        <option value="{{ p.value }}">{{ position_labels[p] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Оберіть факультет або навчально-науковий інститут</label>
+                    <select name="head_{{ i }}_faculty_id" class="form-select faculty-select" data-target="head-{{ i }}-department">
+                        <option value="" selected disabled>— оберіть —</option>
+                        {% for f in faculties %}
+                        <option value="{{ f.id }}">{{ f.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Оберіть кафедру</label>
+                    <select name="head_{{ i }}_department_id" class="form-select" id="head-{{ i }}-department">
+                        <option value="" selected disabled>— спочатку оберіть факультет/інститут —</option>
+                        {% for f in faculties %}
+                            {% for d in f.departments %}
+                            <option value="{{ d.id }}" data-faculty="{{ f.id }}" class="d-none">{{ d.name }}</option>
+                            {% endfor %}
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div id="head-{{ i }}-custom-position-field" class="mb-3 d-none">
+                <label class="form-label">Повна назва посади із зазначенням структурного підрозділу</label>
+                <input type="text" name="head_{{ i }}_position_custom" class="form-control"
+                       placeholder="напр. старший інспектор відділу розвитку студентського потенціалу департаменту студентського розвитку">
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="mb-4">
+        <button type="button" class="btn btn-outline-primary" id="add-head-btn" onclick="addHead()">Додати співкерівника</button>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-lg">Завершити заповнення форми</button>
+</form>
+
+<script>
+    let visibleHeads = 1;
+    const maxHeads = {{ max_heads }};
+
+    function addHead() {
+        if (visibleHeads >= maxHeads) return;
+        visibleHeads += 1;
+        document.getElementById('head-block-' + visibleHeads).classList.remove('d-none');
+        if (visibleHeads >= maxHeads) {
+            document.getElementById('add-head-btn').classList.add('d-none');
+        }
+    }
+
+    function removeHead(i) {
+        document.getElementById('head-block-' + i).classList.add('d-none');
+        document.querySelectorAll('#head-block-' + i + ' input, #head-block-' + i + ' select').forEach(function (el) {
+            if (el.type === 'checkbox') { el.checked = false; } else { el.value = ''; }
+        });
+        visibleHeads = i - 1;
+        document.getElementById('add-head-btn').classList.remove('d-none');
+    }
+
+    function toggleNotPedagogical(i) {
+        const checked = document.getElementById('head-' + i + '-not-pedagogical').checked;
+        document.getElementById('head-' + i + '-pedagogical-fields').classList.toggle('d-none', checked);
+        document.getElementById('head-' + i + '-custom-position-field').classList.toggle('d-none', !checked);
+    }
+
+    document.querySelectorAll('.faculty-select').forEach(function (select) {
+        select.addEventListener('change', function () {
+            const targetId = this.dataset.target;
+            const deptSelect = document.getElementById(targetId);
+            const facultyId = this.value;
+            let firstVisible = null;
+            Array.from(deptSelect.options).forEach(function (opt) {
+                if (!opt.dataset.faculty) return;
+                const match = opt.dataset.faculty === facultyId;
+                opt.classList.toggle('d-none', !match);
+                opt.disabled = !match;
+                if (match && firstVisible === null) firstVisible = opt;
+            });
+            deptSelect.value = firstVisible ? firstVisible.value : '';
+        });
+    });
+
+    document.getElementById('reg-custom').addEventListener('change', function () {
+        document.getElementById('regulation-file-input').disabled = !this.checked;
+    });
+    document.getElementById('reg-standard').addEventListener('change', function () {
+        document.getElementById('regulation-file-input').disabled = this.checked;
+    });
+</script>
+{% endblock %}

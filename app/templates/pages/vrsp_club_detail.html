@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}{{ club.name }} — ВРСП{% endblock %}
+{% block content %}
+<a href="/vrsp/clubs?status={{ club.status.value }}" class="btn btn-sm btn-link mb-2">← Назад до списку</a>
+<h2 class="mb-1">{{ club.name }}</h2>
+<p><span class="badge text-bg-secondary">{{ club.status | status_badge }}</span></p>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <p class="mb-1"><strong>Спрямування:</strong> {{ club.direction | direction_label }}</p>
+        <p class="mb-1"><strong>Підрозділ:</strong> {{ club.faculty.name }}</p>
+        {% if club.order_number %}
+        <p class="mb-1"><strong>Наказ:</strong> № {{ club.order_number }} від {{ club.order_date.strftime("%d.%m.%Y") if club.order_date else "" }}</p>
+        {% endif %}
+        {% if club.rejection_reason %}
+        <p class="mb-1 text-danger"><strong>Причина відмови:</strong> {{ club.rejection_reason }}</p>
+        {% endif %}
+        <p class="mb-1"><strong>Керівники:</strong></p>
+        <ul>
+            {% for h in club.heads %}
+            <li{% if not h.is_active %} class="text-muted"{% endif %}>
+                {{ h.full_name }} — {{ h.position_label }}{% if h.department %}, {{ h.department.name }}{% endif %}
+                ({{ h.email }}){% if not h.is_active %} — знято{% endif %}
+                {% if h.user_id %}<span class="badge text-bg-success">є акаунт</span>{% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% if club.name_history %}
+        <p class="mb-1"><strong>Попередні назви:</strong> {{ club.name_history | map(attribute="old_name") | join(", ") }}</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">Документи</h5>
+        <a class="btn btn-outline-secondary btn-sm me-2" href="/clubs/{{ club.id }}/order.pdf" target="_blank">Наказ (PDF)</a>
+        <a class="btn btn-outline-secondary btn-sm me-2" href="/clubs/{{ club.id }}/order.docx">Наказ (.docx)</a>
+        <a class="btn btn-outline-secondary btn-sm" href="/clubs/{{ club.id }}/regulation.pdf" target="_blank">Положення (PDF)</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Дії</h5>
+        {% if club.status.value == "pending_vrsp_review" %}
+        <form method="post" action="/vrsp/clubs/{{ club.id }}/approve" class="d-inline">
+            <button class="btn btn-success me-2" type="submit">Верифіковано, надіслати в Мегаполіс</button>
+        </form>
+        <button class="btn btn-outline-danger" type="button" data-bs-toggle="collapse" data-bs-target="#reject-form">Відмовити у створенні</button>
+        <div class="collapse mt-2" id="reject-form">
+            <form method="post" action="/vrsp/clubs/{{ club.id }}/reject">
+                <textarea name="reason" class="form-control mb-2" placeholder="Причина відмови" required></textarea>
+                <button class="btn btn-danger" type="submit">Підтвердити відмову</button>
+            </form>
+        </div>
+        {% elif club.status.value == "pending_signature" %}
+        <form method="post" action="/vrsp/clubs/{{ club.id }}/mark-signed" class="row g-2 align-items-end mb-3">
+            <div class="col-auto">
+                <label class="form-label">Номер наказу</label>
+                <input type="text" name="order_number" class="form-control" required>
+            </div>
+            <div class="col-auto">
+                <label class="form-label">Дата наказу</label>
+                <input type="date" name="order_date" class="form-control" required>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-success" type="submit">Наказ пройшов підписання</button>
+            </div>
+        </form>
+        <button class="btn btn-outline-danger" type="button" data-bs-toggle="collapse" data-bs-target="#reject-form">Відмовити у створенні</button>
+        <div class="collapse mt-2" id="reject-form">
+            <form method="post" action="/vrsp/clubs/{{ club.id }}/reject">
+                <textarea name="reason" class="form-control mb-2" placeholder="Причина відмови" required></textarea>
+                <button class="btn btn-danger" type="submit">Підтвердити відмову</button>
+            </form>
+        </div>
+        {% elif club.status.value == "registered" %}
+        <form method="post" action="/vrsp/clubs/{{ club.id }}/revert-to-signature" class="d-inline me-2">
+            <button class="btn btn-outline-warning" type="submit">Повернути у стан «Перебуває в узгодженні»</button>
+        </form>
+        <form method="post" action="/vrsp/clubs/{{ club.id }}/create-accounts" class="d-inline">
+            <button class="btn btn-outline-primary" type="submit">Створити акаунти керівників</button>
+        </form>
+        {% else %}
+        <p class="text-muted mb-0">Немає доступних дій для цього стану.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

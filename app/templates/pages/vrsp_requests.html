@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Заявки — ВРСП{% endblock %}
+{% block content %}
+<h2 class="mb-3">Заявки на зміну гуртків</h2>
+<ul class="nav nav-tabs mb-3">
+    {% for status, label in tabs %}
+    <li class="nav-item">
+        <a class="nav-link {% if status == current_status %}active{% endif %}" href="/vrsp/requests?status={{ status.value }}">{{ label }}</a>
+    </li>
+    {% endfor %}
+</ul>
+
+{% if not items %}
+<p class="text-muted">Немає заявок у цьому статусі.</p>
+{% else %}
+<table class="table bg-white">
+    <thead><tr><th>Гурток</th><th>Тип заявки</th><th>Подано</th><th></th></tr></thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.club.name }}</td>
+            <td>{{ item.type | request_type_label }}</td>
+            <td>{{ item.created_at.strftime("%d.%m.%Y") }}</td>
+            <td><a class="btn btn-sm btn-outline-primary" href="/vrsp/requests/{{ item.id }}">Відкрити</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

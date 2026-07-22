@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Перевірка заявки{% endblock %}
+{% block content %}
+<h2 class="mb-3">Перевірте наказ перед підтвердженням</h2>
+<p class="text-muted">{{ item.type | request_type_label }}: гурток «{{ item.club.name }}»</p>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <p>Ознайомтеся зі згенерованим наказом перед остаточним підтвердженням.</p>
+        <a class="btn btn-outline-secondary" href="/my/requests/{{ item.id }}/order.pdf" target="_blank">Переглянути наказ (PDF)</a>
+    </div>
+</div>
+
+<form method="post" action="/my/requests/{{ item.id }}/confirm">
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="confirm-check" required>
+        <label class="form-check-label" for="confirm-check">Підтверджую, що всі дані наведені у наказі коректні</label>
+    </div>
+    <button type="submit" class="btn btn-primary btn-lg">Підтвердити</button>
+</form>
+{% endblock %}

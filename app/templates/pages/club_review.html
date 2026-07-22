@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Перевірка даних гуртка{% endblock %}
+{% block content %}
+<h2 class="mb-3">Перевірте дані перед подачею</h2>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Гурток «{{ club.name }}»</h5>
+        <p class="mb-1"><strong>Спрямування:</strong> {{ club.direction | direction_label }}</p>
+        <p class="mb-1"><strong>Підрозділ:</strong> {{ club.faculty.name }}</p>
+        <p class="mb-1"><strong>Керівництво:</strong></p>
+        <ul>
+            {% for h in club.heads %}
+            <li>{{ h.full_name }} — {{ h.position_label }}{% if h.department %}, {{ h.department.name }}{% endif %} ({{ h.email }})</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Згенеровані документи</h5>
+        <p>Ознайомтеся з проєктом наказу та Положенням про гурток перед підтвердженням.</p>
+        <a class="btn btn-outline-secondary me-2" href="/clubs/{{ club.id }}/order.pdf" target="_blank">Переглянути проєкт наказу (PDF)</a>
+        <a class="btn btn-outline-secondary" href="/clubs/{{ club.id }}/regulation.pdf" target="_blank">Переглянути Положення (PDF)</a>
+    </div>
+</div>
+
+<form method="post" action="/clubs/{{ club.id }}/confirm">
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="confirm-check" required>
+        <label class="form-check-label" for="confirm-check">Ознайомлений</label>
+    </div>
+    <button type="submit" class="btn btn-primary btn-lg">Підтвердити</button>
+</form>
+{% endblock %}

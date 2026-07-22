@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Налаштування — ВРСП{% endblock %}
+{% block content %}
+<h2 class="mb-3">Налаштування</h2>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Підписанти наказів</h5>
+        <p class="text-muted">Ці посади й ПІБ підставляються у згенеровані накази. Прізвище автоматично друкується ВЕЛИКИМИ ЛІТЕРАМИ.</p>
+        <form method="post" action="/vrsp/settings/signatories">
+            <table class="table">
+                <thead><tr><th>Роль</th><th>Посада</th><th>ПІБ</th></tr></thead>
+                <tbody>
+                    {% for role, label, signatory in signatories %}
+                    <tr>
+                        <td>{{ label }}</td>
+                        <td>
+                            <input type="text" class="form-control" name="{{ role.value }}_position_title"
+                                   value="{{ signatory.position_title if signatory else '' }}">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" name="{{ role.value }}_full_name"
+                                   placeholder="Ім'я Прізвище"
+                                   value="{{ signatory.full_name if signatory else '' }}">
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button type="submit" class="btn btn-primary">Зберегти</button>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Декани / директори факультетів та інститутів</h5>
+        <p class="text-muted">ПІБ декана/директора підставляється у підпис розділу «Проєкт наказу вносить».</p>
+        <table class="table">
+            <thead><tr><th>Підрозділ</th><th>ПІБ декана/директора</th><th></th></tr></thead>
+            <tbody>
+                {% for f in faculties %}
+                <tr>
+                    <td class="align-middle">{{ f.name }}</td>
+                    <td>
+                        <input type="text" class="form-control" name="dean_full_name" placeholder="Ім'я Прізвище"
+                               value="{{ f.dean_full_name or '' }}" form="faculty-form-{{ f.id }}">
+                    </td>
+                    <td>
+                        <button type="submit" class="btn btn-outline-primary btn-sm" form="faculty-form-{{ f.id }}">Зберегти</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% for f in faculties %}
+        <form id="faculty-form-{{ f.id }}" method="post" action="/vrsp/settings/faculties/{{ f.id }}"></form>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

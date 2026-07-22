@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Акаунти створено{% endblock %}
+{% block content %}
+<h2 class="mb-3">Акаунти керівників гуртка «{{ club.name }}»</h2>
+
+{% if created %}
+<div class="alert alert-success">
+    <p>Створено облікові записи. Передайте паролі відповідним керівникам (більше вони ніде не показуватимуться):</p>
+    <ul class="mb-0">
+        {% for c in created %}
+        <li><strong>{{ c.full_name }}</strong> — {{ c.email }} / <code>{{ c.password }}</code></li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if errors %}
+<div class="alert alert-warning">
+    <ul class="mb-0">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+
+{% if not created and not errors %}
+<p class="text-muted">Усі активні керівники вже мають облікові записи.</p>
+{% endif %}
+
+<a href="/vrsp/clubs/{{ club.id }}" class="btn btn-outline-secondary">← Повернутися до гуртка</a>
+{% endblock %}

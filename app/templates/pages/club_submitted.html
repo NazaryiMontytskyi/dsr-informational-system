@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Гурток подано{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <h3 class="mb-3">Дякуємо!</h3>
+        <p>Заявку на створення гуртка «{{ club.name }}» подано та передано на верифікацію ВРСП.</p>
+        <p class="text-muted">Статус: {{ club.status | status_badge }}</p>
+    </div>
+</div>
+{% endblock %}

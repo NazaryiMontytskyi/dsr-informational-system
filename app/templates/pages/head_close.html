@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Закриття гуртка{% endblock %}
+{% block content %}
+<h2 class="mb-3">Закриття гуртка «{{ club.name }}»</h2>
+<div class="alert alert-warning">
+    Закриття гуртка є незворотною дією для його поточної діяльності: гурток отримає статус «Закритий»
+    і надалі не зможе подавати звіти чи плани роботи. Записи про закритий гурток зберігаються у базі
+    протягом 2 років, після чого видаляються.
+</div>
+<form method="post" action="/my/clubs/{{ club.id }}/close" class="card">
+    <div class="card-body">
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="confirm-close" required>
+            <label class="form-check-label" for="confirm-close">Підтверджую, що наявна необхідність закрити гурток</label>
+        </div>
+        <button type="submit" class="btn btn-danger">Продовжити</button>
+    </div>
+</form>
+{% endblock %}

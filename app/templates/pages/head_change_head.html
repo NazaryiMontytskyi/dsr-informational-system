@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Зміна керівника гуртка{% endblock %}
+{% block content %}
+<h2 class="mb-3">Зміна керівника гуртка «{{ club.name }}»</h2>
+
+<form method="post" action="/my/clubs/{{ club.id }}/change-head">
+    <div class="card mb-3">
+        <div class="card-body">
+            <label class="form-label">Оберіть форму зміни керівника гуртка</label>
+            <select name="mode" id="mode-select" class="form-select" required onchange="onModeChange()">
+                <option value="" selected disabled>— оберіть —</option>
+                <option value="mutual">Зміна керівника гуртка за згодою сторін</option>
+                <option value="add">Додавання співкерівника гуртка</option>
+                <option value="remove">Вилучення співкерівника гуртка</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="remove-block" class="card mb-3 d-none">
+        <div class="card-body">
+            <h5 class="card-title">Оберіть співкерівника(ів) для вилучення</h5>
+            {% for h in club.active_heads %}
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="remove_head_id" value="{{ h.id }}" id="remove-{{ h.id }}">
+                <label class="form-check-label" for="remove-{{ h.id }}">{{ h.full_name }} — {{ h.position_label }}</label>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div id="new-heads-block" class="d-none">
+        <p class="text-muted">Вкажіть дані нового(их) керівника(ів). Загальна кількість керівників гуртка не може перевищувати {{ max_new_heads }}.</p>
+        {% for i in range(1, max_new_heads + 1) %}
+        <div class="card mb-3 new-head-block {% if i > 1 %}d-none{% endif %}" id="new-head-block-{{ i }}">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Новий керівник {{ i }}</h5>
+                    {% if i > 1 %}
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeNewHead({{ i }})">Видалити</button>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">ПІБ</label>
+                    <input type="text" name="head_{{ i }}_full_name" class="form-control" minlength="{{ full_name_min }}" maxlength="{{ full_name_max }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email (@edu.kpi.ua)</label>
+                    <input type="email" name="head_{{ i }}_email" class="form-control">
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input not-pedagogical-toggle" type="checkbox" name="head_{{ i }}_not_pedagogical" id="new-head-{{ i }}-not-pedagogical" onchange="toggleNotPedagogical({{ i }})">
+                    <label class="form-check-label" for="new-head-{{ i }}-not-pedagogical">Не є педагогічним або науково-педагогічним працівником</label>
+                </div>
+                <div id="new-head-{{ i }}-pedagogical-fields">
+                    <div class="mb-3">
+                        <label class="form-label">Посада</label>
+                        <select name="head_{{ i }}_position_type" class="form-select">
+                            <option value="" selected disabled>— оберіть —</option>
+                            {% for p in positions %}
+                            <option value="{{ p.value }}">{{ position_labels[p] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Факультет / інститут</label>
+                        <select class="form-select new-head-faculty-select" data-target="new-head-{{ i }}-department">
+                            <option value="" selected disabled>— оберіть —</option>
+                            {% for f in faculties %}
+                            <option value="{{ f.id }}">{{ f.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Кафедра</label>
+                        <select name="head_{{ i }}_department_id" class="form-select" id="new-head-{{ i }}-department">
+                            <option value="" selected disabled>— спочатку оберіть факультет/інститут —</option>
+                            {% for f in faculties %}
+                                {% for d in f.departments %}
+                                <option value="{{ d.id }}" data-faculty="{{ f.id }}" class="d-none">{{ d.name }}</option>
+                                {% endfor %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div id="new-head-{{ i }}-custom-field" class="mb-3 d-none">
+                    <label class="form-label">Повна назва посади із зазначенням підрозділу</label>
+                    <input type="text" name="head_{{ i }}_position_custom" class="form-control">
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        <button type="button" class="btn btn-outline-primary mb-3" id="add-new-head-btn" onclick="addNewHead()">Додати ще одного керівника</button>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-lg">Заповнити</button>
+</form>
+
+<script>
+    const maxNewHeads = {{ max_new_heads }};
+    let visibleNewHeads = 1;
+
+    function onModeChange() {
+        const mode = document.getElementById('mode-select').value;
+        document.getElementById('remove-block').classList.toggle('d-none', mode !== 'remove');
+        document.getElementById('new-heads-block').classList.toggle('d-none', mode === 'remove' || mode === '');
+    }
+
+    function addNewHead() {
+        if (visibleNewHeads >= maxNewHeads) return;
+        visibleNewHeads += 1;
+        document.getElementById('new-head-block-' + visibleNewHeads).classList.remove('d-none');
+        if (visibleNewHeads >= maxNewHeads) document.getElementById('add-new-head-btn').classList.add('d-none');
+    }
+
+    function removeNewHead(i) {
+        document.getElementById('new-head-block-' + i).classList.add('d-none');
+        document.querySelectorAll('#new-head-block-' + i + ' input, #new-head-block-' + i + ' select').forEach(function (el) {
+            if (el.type === 'checkbox') { el.checked = false; } else { el.value = ''; }
+        });
+        visibleNewHeads = i - 1;
+        document.getElementById('add-new-head-btn').classList.remove('d-none');
+    }
+
+    function toggleNotPedagogical(i) {
+        const checked = document.getElementById('new-head-' + i + '-not-pedagogical').checked;
+        document.getElementById('new-head-' + i + '-pedagogical-fields').classList.toggle('d-none', checked);
+        document.getElementById('new-head-' + i + '-custom-field').classList.toggle('d-none', !checked);
+    }
+
+    document.querySelectorAll('.new-head-faculty-select').forEach(function (select) {
+        select.addEventListener('change', function () {
+            const deptSelect = document.getElementById(this.dataset.target);
+            const facultyId = this.value;
+            let firstVisible = null;
+            Array.from(deptSelect.options).forEach(function (opt) {
+                if (!opt.dataset.faculty) return;
+                const match = opt.dataset.faculty === facultyId;
+                opt.classList.toggle('d-none', !match);
+                opt.disabled = !match;
+                if (match && firstVisible === null) firstVisible = opt;
+            });
+            deptSelect.value = firstVisible ? firstVisible.value : '';
+        });
+    });
+</script>
+{% endblock %}

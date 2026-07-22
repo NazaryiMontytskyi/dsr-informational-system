@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+dsr_digital.db
+app/uploads/
+.soffice_profile/
+.env
+~$*

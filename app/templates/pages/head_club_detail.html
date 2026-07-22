@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ club.name }}{% endblock %}
+{% block content %}
+<a href="/my/clubs" class="btn btn-sm btn-link mb-2">← Мої гуртки</a>
+<div class="d-flex justify-content-between align-items-start">
+    <div>
+        <h2 class="mb-1">{{ club.name }}</h2>
+        <p><span class="badge text-bg-secondary">{{ club.status | status_badge }}</span></p>
+    </div>
+    <div class="dropdown">
+        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">Додаткові опції</button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="/my/clubs/{{ club.id }}/rename">Змінити назву гуртка</a></li>
+            <li><a class="dropdown-item" href="/my/clubs/{{ club.id }}/change-head">Змінити керівника гуртка</a></li>
+            <li><a class="dropdown-item text-danger" href="/my/clubs/{{ club.id }}/close">Закрити гурток</a></li>
+        </ul>
+    </div>
+</div>
+
+<div class="card my-3">
+    <div class="card-body">
+        <p class="mb-1"><strong>Спрямування:</strong> {{ club.direction | direction_label }}</p>
+        <p class="mb-1"><strong>Підрозділ:</strong> {{ club.faculty.name }}</p>
+        {% if club.order_number %}
+        <p class="mb-1"><strong>Наказ про створення:</strong> № {{ club.order_number }} від {{ club.order_date.strftime("%d.%m.%Y") if club.order_date else "" }}</p>
+        {% endif %}
+        <p class="mb-1"><strong>Керівники:</strong></p>
+        <ul>
+            {% for h in club.active_heads %}
+            <li>{{ h.full_name }} — {{ h.position_label }}{% if h.department %}, {{ h.department.name }}{% endif %}</li>
+            {% endfor %}
+        </ul>
+        {% if club.name_history %}
+        <p class="mb-0"><strong>Попередні назви:</strong> {{ club.name_history | map(attribute="old_name") | join(", ") }}</p>
+        {% endif %}
+    </div>
+</div>
+
+<a class="btn btn-outline-secondary btn-sm" href="/clubs/{{ club.id }}/order.pdf" target="_blank">Переглянути наказ про створення (PDF)</a>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

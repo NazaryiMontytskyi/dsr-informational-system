@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Вхід — ДСР Діджитал{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow-sm p-4">
+            <h4 class="mb-3">Вхід до системи</h4>
+            {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+            <form method="post" action="/login">
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control" required autofocus>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Пароль</label>
+                    <input type="password" name="password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Увійти</button>
+            </form>
+            <p class="footer-note mt-3 mb-0">
+                Керівники гуртків отримують обліковий запис на <code>@edu.kpi.ua</code>
+                після підписання наказу про створення гуртка.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

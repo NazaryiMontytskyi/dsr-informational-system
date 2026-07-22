@@ -1,0 +1,13 @@
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+Jinja2==3.1.5
+python-multipart==0.0.20
+SQLAlchemy==2.0.36
+itsdangerous==2.2.0
+bcrypt==4.2.1
+pymorphy3==2.0.6
+pymorphy3-dicts-uk==2.4.1.1.1663094765
+python-docx==1.1.2
+reportlab==4.2.5
+pydantic==2.10.5
+python-dotenv==1.0.1
