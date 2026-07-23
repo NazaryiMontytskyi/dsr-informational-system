@@ -88,21 +88,23 @@ def _create_clauses(club: Club) -> list[str]:
     heads = club.active_heads
     faculty = club.faculty
 
+    club_ref = f"«{club.name}» {direction_gent} спрямування"
     appointment_parts = [
-        f"«{club.name}» {direction_gent} спрямування "
-        + _head_position_and_department_accs(head.full_name, head.position_label, head.position_type, head.department)
+        _head_position_and_department_accs(head.full_name, head.position_label, head.position_type, head.department)
         for head in heads
     ]
 
     if len(heads) <= 1:
         appoint_clause = (
-            f"Призначити керівником гуртка {appointment_parts[0]} без додаткової оплати (за згодою)."
+            f"Призначити керівником гуртка {club_ref} {appointment_parts[0]} без додаткової оплати (за згодою)."
             if appointment_parts
-            else "Призначити керівника гуртка без додаткової оплати (за згодою)."
+            else f"Призначити керівника гуртка {club_ref} без додаткової оплати (за згодою)."
         )
     else:
         appoint_clause = (
-            "Призначити керівниками гуртка " + ", ".join(appointment_parts) + " без додаткової оплати (за згодою)."
+            f"Призначити керівниками гуртка {club_ref} "
+            + ", ".join(appointment_parts)
+            + " без додаткової оплати (за згодою)."
         )
 
     dean_datv = decline_all_words(_dean_title(faculty), "datv")
