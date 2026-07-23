@@ -41,7 +41,7 @@
             <tbody>
                 {% for f in faculties %}
                 <tr>
-                    <td class="align-middle">{{ f.name }}</td>
+                    <td class="align-middle">{{ f.display_name }}</td>
                     <td>
                         <input type="text" class="form-control" name="dean_full_name" placeholder="Ім'я Прізвище"
                                value="{{ f.dean_full_name or '' }}" form="faculty-form-{{ f.id }}">

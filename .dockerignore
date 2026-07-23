@@ -1,0 +1,11 @@
+.git
+__pycache__/
+*.pyc
+.venv/
+venv/
+dsr_digital.db
+.soffice_profile/
+app/uploads/
+.env
+~$*
+docs/

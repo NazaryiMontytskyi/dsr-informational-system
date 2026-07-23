@@ -5,12 +5,13 @@ from fastapi.responses import RedirectResponse, Response
 from sqlalchemy.orm import Session
 
 from app.core.deps import require_staff
+from app.core.pdf_response import order_pdf_response
 from app.core.templates import templates
 from app.db.models import ClubRequest, RequestStatus, User
 from app.db.session import get_db
 from app.services.club_requests import apply_request, revert_request
-from app.services.orders import build_request_order_document, render_request_order_docx
-from app.services.pdf import docx_to_bytes, render_order_pdf
+from app.services.orders import render_request_order_docx
+from app.services.pdf import docx_to_bytes
 
 router = APIRouter()
 
@@ -53,9 +54,8 @@ def request_order_pdf(request_id: int, db: Session = Depends(get_db), user: User
     item = db.get(ClubRequest, request_id)
     if item is None:
         raise HTTPException(404)
-    order = build_request_order_document(item, db)
-    pdf_bytes = render_order_pdf(order)
-    return Response(pdf_bytes, media_type="application/pdf")
+    doc = render_request_order_docx(item, db)
+    return order_pdf_response(doc)
 
 
 @router.get("/vrsp/requests/{request_id}/order.docx")

@@ -8,7 +8,7 @@
 <div class="card mb-3">
     <div class="card-body">
         <p class="mb-1"><strong>Спрямування:</strong> {{ club.direction | direction_label }}</p>
-        <p class="mb-1"><strong>Підрозділ:</strong> {{ club.faculty.name }}</p>
+        <p class="mb-1"><strong>Підрозділ:</strong> {{ club.faculty.display_name }}</p>
         {% if club.order_number %}
         <p class="mb-1"><strong>Наказ:</strong> № {{ club.order_number }} від {{ club.order_date.strftime("%d.%m.%Y") if club.order_date else "" }}</p>
         {% endif %}

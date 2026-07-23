@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
-from fastapi.responses import RedirectResponse, Response
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.core.config import CLUB_NAME_MAX_LEN, CLUB_NAME_MIN_LEN, FULL_NAME_MAX_LEN, FULL_NAME_MIN_LEN, MAX_CLUB_HEADS
@@ -21,9 +21,9 @@ from app.db.models import (
     RequestType,
     User,
 )
+from app.core.pdf_response import order_pdf_response
 from app.db.session import get_db
-from app.services.orders import build_request_order_document
-from app.services.pdf import render_order_pdf
+from app.services.orders import render_request_order_docx
 
 router = APIRouter()
 
@@ -225,6 +225,5 @@ def request_confirm(request_id: int, db: Session = Depends(get_db), user: User =
 @router.get("/my/requests/{request_id}/order.pdf")
 def request_order_pdf_head(request_id: int, db: Session = Depends(get_db), user: User = Depends(require_head)):
     item = _owned_request(db, user, request_id)
-    order = build_request_order_document(item, db)
-    pdf_bytes = render_order_pdf(order)
-    return Response(pdf_bytes, media_type="application/pdf")
+    doc = render_request_order_docx(item, db)
+    return order_pdf_response(doc)

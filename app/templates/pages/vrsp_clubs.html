@@ -20,7 +20,7 @@
         <tr>
             <td>{{ club.name }}</td>
             <td>{{ club.direction | direction_label }}</td>
-            <td>{{ club.faculty.name }}</td>
+            <td>{{ club.faculty.display_name }}</td>
             <td>{{ club.created_at.strftime("%d.%m.%Y") }}</td>
             <td><a class="btn btn-sm btn-outline-primary" href="/vrsp/clubs/{{ club.id }}">Відкрити</a></td>
         </tr>

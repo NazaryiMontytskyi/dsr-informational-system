@@ -7,7 +7,7 @@
     <div class="card-body">
         <h5 class="card-title">Гурток «{{ club.name }}»</h5>
         <p class="mb-1"><strong>Спрямування:</strong> {{ club.direction | direction_label }}</p>
-        <p class="mb-1"><strong>Підрозділ:</strong> {{ club.faculty.name }}</p>
+        <p class="mb-1"><strong>Підрозділ:</strong> {{ club.faculty.display_name }}</p>
         <p class="mb-1"><strong>Керівництво:</strong></p>
         <ul>
             {% for h in club.heads %}

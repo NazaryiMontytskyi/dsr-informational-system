@@ -16,19 +16,13 @@ class UserRole(str, enum.Enum):
 class SignatoryRole(str, enum.Enum):
     """Особи, відповідальні за підписання/погодження наказів -- налаштовуються в адмінпанелі."""
 
-    CREATE_ORDER = "create_order"           # підписант наказу про створення гуртка
-    RENAME_ORDER = "rename_order"           # підписант наказу про зміну назви
-    CHANGE_HEAD_ORDER = "change_head_order"  # підписант наказу про зміну керівника
-    CLOSE_ORDER = "close_order"               # підписант наказу про закриття
-    VRSP_CHIEF = "vrsp_chief"                  # Начальник ВРСП (погодження)
-    HR_CHIEF = "hr_chief"                       # Начальник відділу кадрів (погодження)
+    ORDER = "order"              # підписант усіх наказів про гуртки (створення/зміна назви/зміна керівника/закриття)
+    VRSP_CHIEF = "vrsp_chief"     # Начальник ВРСП (погодження)
+    HR_CHIEF = "hr_chief"          # Начальник відділу кадрів (погодження)
 
 
 SIGNATORY_ROLE_LABELS: dict[SignatoryRole, str] = {
-    SignatoryRole.CREATE_ORDER: "Підписант наказу про створення гуртка",
-    SignatoryRole.RENAME_ORDER: "Підписант наказу про зміну назви гуртка",
-    SignatoryRole.CHANGE_HEAD_ORDER: "Підписант наказу про зміну керівника гуртка",
-    SignatoryRole.CLOSE_ORDER: "Підписант наказу про закриття гуртка",
+    SignatoryRole.ORDER: "Підписант наказів про гуртки",
     SignatoryRole.VRSP_CHIEF: "Начальник ВРСП (погодження)",
     SignatoryRole.HR_CHIEF: "Начальник відділу кадрів (погодження)",
 }
@@ -128,7 +122,8 @@ class Faculty(Base):
     __tablename__ = "faculties"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(255))   # називний відмінок
+    name: Mapped[str] = mapped_column(String(255))   # називний відмінок, з малої літери (вживання в тексті наказу)
+    abbreviation: Mapped[str] = mapped_column(String(50), default="")
     kind: Mapped[FacultyKind] = mapped_column(SAEnum(FacultyKind, native_enum=False))
     genitive: Mapped[str] = mapped_column(String(255))
     dative: Mapped[str] = mapped_column(String(255))
@@ -140,6 +135,11 @@ class Faculty(Base):
     @property
     def head_title(self) -> str:
         return "декан" if self.kind == FacultyKind.FACULTY else "директор"
+
+    @property
+    def display_name(self) -> str:
+        """Назва факультету з великої літери -- для показу в UI (списки, форми)."""
+        return self.name[:1].upper() + self.name[1:] if self.name else self.name
 
 
 class Department(Base):

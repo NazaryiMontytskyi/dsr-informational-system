@@ -19,9 +19,11 @@ from app.db.models import (
     PositionType,
     RegulationType,
 )
+from app.core.pdf_response import order_pdf_response, regulation_pdf_response
 from app.db.session import get_db
-from app.services.orders import build_create_order_document, render_create_order_docx
-from app.services.pdf import docx_to_bytes, render_order_pdf, render_regulation_pdf
+from app.services.orders import render_create_order_docx
+from app.services.pdf import docx_to_bytes
+from app.services.regulation_docx import build_regulation_document
 
 router = APIRouter()
 
@@ -211,9 +213,8 @@ def club_order_pdf(club_id: int, db: Session = Depends(get_db)):
     club = db.get(Club, club_id)
     if club is None:
         raise HTTPException(404)
-    order = build_create_order_document(club, db)
-    pdf_bytes = render_order_pdf(order)
-    return Response(pdf_bytes, media_type="application/pdf")
+    doc = render_create_order_docx(club, db)
+    return order_pdf_response(doc)
 
 
 @router.get("/clubs/{club_id}/order.docx")
@@ -238,5 +239,5 @@ def club_regulation_pdf(club_id: int, db: Session = Depends(get_db)):
     if club.regulation_type == RegulationType.CUSTOM and club.regulation_file_path:
         data = (BASE_DIR / club.regulation_file_path).read_bytes()
         return Response(data, media_type="application/pdf")
-    pdf_bytes = render_regulation_pdf(club)
-    return Response(pdf_bytes, media_type="application/pdf")
+    doc = build_regulation_document(club)
+    return regulation_pdf_response(doc)

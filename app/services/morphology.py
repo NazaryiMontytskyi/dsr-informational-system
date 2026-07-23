@@ -57,6 +57,21 @@ def _looks_nominative(parse) -> bool:
     return tag.case == "nomn"
 
 
+def _prefer_short_dative(word: str) -> str:
+    """
+    Давальний відмінок чоловічого роду однини в українській мові має два
+    правильні варіанти закінчення: довше "-ові"/"-еві" (яке pymorphy
+    повертає за замовчуванням для істот) і коротше "-у"/"-ю" (частіше
+    вживане в діловодному стилі наказів). Для наказів обираємо коротший
+    варіант: "Івану Коробку", а не "Іванові Коробкові".
+    """
+    if word.endswith("ові"):
+        return word[: -len("ові")] + "у"
+    if word.endswith("еві") or word.endswith("єві"):
+        return word[: -len("еві")] + "ю"
+    return word
+
+
 def _inflect_word(word: str, case: str) -> str:
     core = word.strip("«»\"'()")
     prefix = word[: len(word) - len(word.lstrip("«»\"'("))]
@@ -73,6 +88,8 @@ def _inflect_word(word: str, case: str) -> str:
     else:
         result = parse.inflect({case})
         inflected = result.word if result is not None else core
+        if case == "datv":
+            inflected = _prefer_short_dative(inflected)
 
     return prefix + _restore_case_pattern(core, inflected) + suffix
 
@@ -88,14 +105,29 @@ def decline_all_words(phrase: str, case: str) -> str:
 
 
 def _detect_person_gender(tokens: list[str]) -> str | None:
-    """Визначає стать людини за іменем (найнадійніший маркер) серед слів ПІБ."""
+    """
+    Визначає стать людини за іменем (найнадійніший маркер) серед слів ПІБ.
+
+    Деякі імена -- омографи: рядок "Юлія" збігається і з називним жіночого
+    імені "Юлія", і з родовим/знахідним чоловічого імені "Юлій", і pymorphy
+    повертає обидва розбори з однаковим рейтингом. Оскільки ПІБ у формі
+    завжди вводиться в називному відмінку, серед розборів з тегом "Name"
+    треба віддавати перевагу саме розбору в називному відмінку -- інакше
+    можна випадково узяти чоловічий розбір для жіночого імені (і, як
+    наслідок, неправильно відмінити й прізвище).
+    """
     for tok in tokens:
         core = tok.strip("«»\"'()")
         if not core:
             continue
-        for parse in _analyzer().parse(core):
-            if "Name" in parse.tag and ("masc" in parse.tag or "femn" in parse.tag):
-                return "femn" if "femn" in parse.tag else "masc"
+        name_parses = [
+            p for p in _analyzer().parse(core) if "Name" in p.tag and ("masc" in p.tag or "femn" in p.tag)
+        ]
+        if not name_parses:
+            continue
+        nomn_parses = [p for p in name_parses if p.tag.case == "nomn"]
+        chosen = nomn_parses[0] if nomn_parses else name_parses[0]
+        return "femn" if "femn" in chosen.tag else "masc"
     return None
 
 
@@ -122,6 +154,8 @@ def _inflect_word_as_gender(word: str, case: str, gender: str | None) -> str:
     else:
         result = parse.inflect({case})
         inflected = result.word if result is not None else core
+        if case == "datv":
+            inflected = _prefer_short_dative(inflected)
 
     return prefix + _restore_case_pattern(core, inflected) + suffix
 

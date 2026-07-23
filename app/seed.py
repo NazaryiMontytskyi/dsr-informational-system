@@ -14,43 +14,120 @@ from app.db.session import Base, SessionLocal, engine
 from app.services.morphology import decline_headword_phrase
 
 DEFAULT_SIGNATORIES: dict[SignatoryRole, str] = {
-    SignatoryRole.CREATE_ORDER: "Проректор з навчальної роботи",
-    SignatoryRole.RENAME_ORDER: "Проректор з навчальної роботи",
-    SignatoryRole.CHANGE_HEAD_ORDER: "Проректор з навчальної роботи",
-    SignatoryRole.CLOSE_ORDER: "Проректор з навчальної роботи",
+    SignatoryRole.ORDER: "Проректор з навчальної роботи",
     SignatoryRole.VRSP_CHIEF: "Начальник ВРСП",
     SignatoryRole.HR_CHIEF: "Начальник відділу кадрів",
 }
 
+# Повний перелік факультетів/інститутів КПІ ім. Ігоря Сікорського --
+# з FACULTIES.md. Назви навмисно з малої літери (вживання в тексті
+# наказу: "закріпити його за факультетом...", "деканові факультету...").
+# У списку окремих кафедр немає -- для 5 підрозділів лишено реальні
+# кафедри (використовуються найчастіше в прикладах), для решти доданий
+# один умовний запис-заглушка "кафедра (уточнюється)", який варто
+# замінити на реальний перелік кафедр цього підрозділу.
+_PLACEHOLDER_DEPARTMENT = "кафедра (уточнюється)"
+
 FACULTIES: list[dict] = [
     {
-        "name": "Факультет інформатики та обчислювальної техніки",
+        "name": "факультет інформатики та обчислювальної техніки",
+        "abbreviation": "ФІОТ",
         "kind": FacultyKind.FACULTY,
         "departments": [
-            "кафедра автоматики та управління в технічних системах",
+            "кафедра інформатики та програмної інженерії",
             "кафедра обчислювальної техніки",
-            "кафедра технічної кібернетики",
+            "кафедра інформаційних систем і технологій",
+            "кафедра інтелектуальних та ігрових систем",
         ],
     },
     {
-        "name": "Факультет соціології і права",
+        "name": "факультет програмних систем та прикладної математики",
+        "abbreviation": "ФПСПМ",
         "kind": FacultyKind.FACULTY,
         "departments": [
-            "кафедра соціології",
-            "кафедра філософії",
-            "кафедра права",
+            "кафедра прикладної математики",
+            "кафедра системного програмування і спеціалізованих комп'ютерних систем",
+            "кафедра програмного забезпечення комп'ютерних систем",
         ],
     },
     {
-        "name": "Навчально-науковий інститут прикладного системного аналізу",
-        "kind": FacultyKind.INSTITUTE,
+        "name": "факультет автоматизації, промислової інженерії та екології",
+        "abbreviation": "ФАПІЕ",
+        "kind": FacultyKind.FACULTY,
+        "departments": [_PLACEHOLDER_DEPARTMENT],
+    },
+    {
+        "name": "факультет біотехнології та біотехніки",
+        "abbreviation": "ФБТ",
+        "kind": FacultyKind.FACULTY,
+        "departments": [_PLACEHOLDER_DEPARTMENT],
+    },
+    {
+        "name": "хіміко-технологічний факультет",
+        "abbreviation": "ХТФ",
+        "kind": FacultyKind.FACULTY,
+        "departments": [_PLACEHOLDER_DEPARTMENT],
+    },
+    {
+        "name": "факультет біомедичної інженерії",
+        "abbreviation": "ФБМІ",
+        "kind": FacultyKind.FACULTY,
+        "departments": [_PLACEHOLDER_DEPARTMENT],
+    },
+    {
+        "name": "факультет соціології і права",
+        "abbreviation": "ФСП",
+        "kind": FacultyKind.FACULTY,
         "departments": [
-            "кафедра математичних методів системного аналізу",
-            "кафедра системного проєктування",
+            "кафедра інтелектуальної власності та приватного права",
+            "кафедра інформаційного, господарського та адміністративного права",
+            "кафедра історії",
+            "кафедра психології та педагогіки",
+            "кафедра соціології",
+            "кафедра теорії та практики управління",
+            "кафедра філософії",
         ],
     },
     {
-        "name": "Факультет електроенерготехніки та автоматики",
+        "name": "факультет лінгвістики",
+        "abbreviation": "ФЛ",
+        "kind": FacultyKind.FACULTY,
+        "departments": [_PLACEHOLDER_DEPARTMENT],
+    },
+    {
+        "name": "факультет електроніки",
+        "abbreviation": "ФЕЛ",
+        "kind": FacultyKind.FACULTY,
+        "departments": [
+            "кафедра мікроелектроніки",
+            "кафедра електронних пристроїв та систем",
+            "кафедра електронної інженерії",
+            "кафедра конструювання електронно-обчислювальної апаратури",
+            "кафедра акустичних та мультимедійних електронних систем",
+        ],
+    },
+    {
+        "name": "радіотехнічний факультет",
+        "abbreviation": "РТФ",
+        "kind": FacultyKind.FACULTY,
+        "departments": [
+            "кафедра прикладної радіотехніки",
+            "кафедра радіоінженерії",
+            "кафедра радіотехнічних систем",
+        ],
+    },
+    {
+        "name": "факультет менеджменту і маркетингу",
+        "abbreviation": "ФММ",
+        "kind": FacultyKind.FACULTY,
+        "departments": [
+            "кафедра менеджменту",
+            "кафедра маркетингу і комунікаційного дизайну",
+        ],
+    },
+    {
+        "name": "факультет електроенерготехніки та автоматики",
+        "abbreviation": "ФЕА",
         "kind": FacultyKind.FACULTY,
         "departments": [
             "кафедра автоматизації електромеханічних систем та електроприводу",
@@ -58,12 +135,79 @@ FACULTIES: list[dict] = [
         ],
     },
     {
-        "name": "Факультет менеджменту та маркетингу",
+        "name": "факультет робототехніки та приладобудування",
+        "abbreviation": "ФРП",
         "kind": FacultyKind.FACULTY,
+        "departments": [_PLACEHOLDER_DEPARTMENT],
+    },
+    {
+        "name": "фізико-математичний факультет",
+        "abbreviation": "ФМФ",
+        "kind": FacultyKind.FACULTY,
+        "departments": [_PLACEHOLDER_DEPARTMENT],
+    },
+    {
+        "name": "навчально-науковий інститут прикладного системного аналізу",
+        "abbreviation": "НН ІПСА",
+        "kind": FacultyKind.INSTITUTE,
         "departments": [
-            "кафедра менеджменту",
-            "кафедра маркетингу і комунікаційного дизайну",
+            "кафедра математичних методів системного аналізу",
+            "кафедра системного проєктування",
         ],
+    },
+    {
+        "name": "навчально-науковий інститут атомної та теплової енергетики",
+        "abbreviation": "НН ІАТЕ",
+        "kind": FacultyKind.INSTITUTE,
+        "departments": [_PLACEHOLDER_DEPARTMENT],
+    },
+    {
+        "name": "навчально-науковий інститут аерокосмічних технологій",
+        "abbreviation": "НН ІАТ",
+        "kind": FacultyKind.INSTITUTE,
+        "departments": [_PLACEHOLDER_DEPARTMENT],
+    },
+    {
+        "name": "навчально-науковий фізико-технічний інститут",
+        "abbreviation": "НН ФТІ",
+        "kind": FacultyKind.INSTITUTE,
+        "departments": [_PLACEHOLDER_DEPARTMENT],
+    },
+    {
+        "name": "навчально-науковий механіко-машинобудівний інститут",
+        "abbreviation": "НН ММІ",
+        "kind": FacultyKind.INSTITUTE,
+        "departments": [_PLACEHOLDER_DEPARTMENT],
+    },
+    {
+        "name": "навчально-науковий інститут матеріалознавства і зварювання імені Є. О. Патона",
+        "abbreviation": "НН ІМЗ ім. Є. О. Патона",
+        "kind": FacultyKind.INSTITUTE,
+        "departments": [_PLACEHOLDER_DEPARTMENT],
+    },
+    {
+        # "енергозбереження" -- нейтральний іменник, у якого називний і
+        # родовий відмінки збігаються (як-от "питання"), тому автоматична
+        # евристика хибно відмінює цей "хвіст" у давальному/орудному --
+        # форми задані вручну.
+        "name": "навчально-науковий інститут енергозбереження та енергоменеджменту",
+        "abbreviation": "НН ІЕЕ",
+        "kind": FacultyKind.INSTITUTE,
+        "departments": [_PLACEHOLDER_DEPARTMENT],
+        "dative_override": "навчально-науковому інституту енергозбереження та енергоменеджменту",
+        "instrumental_override": "навчально-науковим інститутом енергозбереження та енергоменеджменту",
+    },
+    {
+        "name": "навчально-науковий видавничо-поліграфічний інститут",
+        "abbreviation": "НН ВПІ",
+        "kind": FacultyKind.INSTITUTE,
+        "departments": [_PLACEHOLDER_DEPARTMENT],
+    },
+    {
+        "name": "навчально-науковий інститут телекомунікаційних систем",
+        "abbreviation": "НН ІТС",
+        "kind": FacultyKind.INSTITUTE,
+        "departments": [_PLACEHOLDER_DEPARTMENT],
     },
 ]
 
@@ -80,10 +224,11 @@ def seed() -> None:
                 name = entry["name"]
                 faculty = Faculty(
                     name=name,
+                    abbreviation=entry["abbreviation"],
                     kind=entry["kind"],
                     genitive=decline_headword_phrase(name, "gent"),
-                    dative=decline_headword_phrase(name, "datv"),
-                    instrumental=decline_headword_phrase(name, "ablt"),
+                    dative=entry.get("dative_override") or decline_headword_phrase(name, "datv"),
+                    instrumental=entry.get("instrumental_override") or decline_headword_phrase(name, "ablt"),
                 )
                 db.add(faculty)
                 db.flush()

@@ -39,7 +39,7 @@
                 <select name="faculty_id" class="form-select" required>
                     <option value="" selected disabled>— оберіть факультет або інститут —</option>
                     {% for f in faculties %}
-                    <option value="{{ f.id }}">{{ f.name }}</option>
+                    <option value="{{ f.id }}">{{ f.display_name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -71,7 +71,7 @@
                 {% endif %}
             </div>
             <div class="mb-3">
-                <label class="form-label">ПІБ керівника</label>
+                <label class="form-label">Власне ім'я та прізвище керівника</label>
                 <input type="text" name="head_{{ i }}_full_name" class="form-control"
                        minlength="{{ full_name_min }}" maxlength="{{ full_name_max }}" {% if i == 1 %}required{% endif %}>
             </div>
@@ -99,7 +99,7 @@
                     <select name="head_{{ i }}_faculty_id" class="form-select faculty-select" data-target="head-{{ i }}-department">
                         <option value="" selected disabled>— оберіть —</option>
                         {% for f in faculties %}
-                        <option value="{{ f.id }}">{{ f.name }}</option>
+                        <option value="{{ f.id }}">{{ f.display_name }}</option>
                         {% endfor %}
                     </select>
                 </div>
