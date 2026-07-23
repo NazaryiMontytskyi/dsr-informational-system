@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "macros/pdf_viewer.html" as pdf_viewer %}
 {% block title %}Перевірка заявки{% endblock %}
 {% block content %}
 <h2 class="mb-3">Перевірте наказ перед підтвердженням</h2>
@@ -7,7 +8,7 @@
 <div class="card mb-4">
     <div class="card-body">
         <p>Ознайомтеся зі згенерованим наказом перед остаточним підтвердженням.</p>
-        <a class="btn btn-outline-secondary" href="/my/requests/{{ item.id }}/order.pdf" target="_blank">Переглянути наказ (PDF)</a>
+        {{ pdf_viewer.pdf_tabs("head-request-" ~ item.id, "/my/requests/" ~ item.id ~ "/order.pdf") }}
     </div>
 </div>
 

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}DSG Digital{% endblock %}
+{% block content %}
+
+<div class="kpi-hero d-flex align-items-center gap-4 flex-wrap flex-md-nowrap">
+    <img src="/logo/dsr_logo_white.png" alt="Департамент студентського розвитку" class="kpi-landing-logo flex-shrink-0">
+    <div class="text-start">
+        <h1 class="mb-3">Автоматизована інформаційна система DSG Digital</h1>
+        <p class="mb-4">
+            Головне завдання системи — підтримувати роботу Департаменту студентського
+            розвитку з документами, пов’язаними зі студентом.
+        </p>
+        {% if not user %}
+        <a class="btn btn-kpi-accent btn-lg" href="/login">Увійти до системи</a>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

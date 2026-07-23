@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "macros/pdf_viewer.html" as pdf_viewer %}
 {% block title %}{{ club.name }}{% endblock %}
 {% block content %}
 <a href="/my/clubs" class="btn btn-sm btn-link mb-2">← Мої гуртки</a>
@@ -36,7 +37,7 @@
     </div>
 </div>
 
-<a class="btn btn-outline-secondary btn-sm" href="/clubs/{{ club.id }}/order.pdf" target="_blank">Переглянути наказ про створення (PDF)</a>
+<h5 class="mb-2">Наказ про створення</h5>
+{{ pdf_viewer.pdf_tabs("head-club-" ~ club.id, "/clubs/" ~ club.id ~ "/order.pdf") }}
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}

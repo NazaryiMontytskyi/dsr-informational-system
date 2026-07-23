@@ -17,6 +17,11 @@ MAX_CLUB_HEADS = 3
 
 CLUB_CLOSED_RETENTION_DAYS = 365 * 2
 
+REPORT_TEXT_MAX_LEN = 1000
+REPORT_GROUP_CODE_MAX_LEN = 7
+REPORT_EVENT_NAME_MAX_LEN = 100
+REPORT_EVENT_TYPE_CUSTOM_MAX_LEN = 100
+
 ORDER_TEMPLATES_DIR = BASE_DIR / "app" / "order_templates"
 
 # Підписанти наказів (проректор, начальник ВРСП, начальник відділу кадрів

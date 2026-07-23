@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "macros/pdf_viewer.html" as pdf_viewer %}
 {% block title %}Перевірка даних гуртка{% endblock %}
 {% block content %}
 <h2 class="mb-3">Перевірте дані перед подачею</h2>
@@ -21,8 +22,7 @@
     <div class="card-body">
         <h5 class="card-title">Згенеровані документи</h5>
         <p>Ознайомтеся з проєктом наказу та Положенням про гурток перед підтвердженням.</p>
-        <a class="btn btn-outline-secondary me-2" href="/clubs/{{ club.id }}/order.pdf" target="_blank">Переглянути проєкт наказу (PDF)</a>
-        <a class="btn btn-outline-secondary" href="/clubs/{{ club.id }}/regulation.pdf" target="_blank">Переглянути Положення (PDF)</a>
+        {{ pdf_viewer.pdf_tabs("club-review", "/clubs/" ~ club.id ~ "/order.pdf", "/clubs/" ~ club.id ~ "/regulation.pdf") }}
     </div>
 </div>
 

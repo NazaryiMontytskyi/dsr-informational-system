@@ -15,7 +15,9 @@ from app.db.models import (
     ClubRequestHeadAction,
     DIRECTION_LABELS,
     DocumentSignatory,
+    Faculty,
     FacultyKind,
+    HeadChangeMode,
     PositionType,
     RequestType,
     SignatoryRole,
@@ -32,6 +34,7 @@ TEMPLATE_FILES = {
     RequestType.CLOSE: ORDER_TEMPLATES_DIR / "close.docx",
 }
 CREATE_TEMPLATE_FILE = ORDER_TEMPLATES_DIR / "create_1head.docx"
+CHANGE_HEAD_COHEAD_TEMPLATE_FILE = ORDER_TEMPLATES_DIR / "change_head_cohead.docx"
 
 
 def _direction_gent(direction) -> str:
@@ -63,19 +66,37 @@ def _head_position_and_department_accs(full_name: str, position_label: str, posi
     return f"{position_accs} {department_gent} {fullname_accs}".strip()
 
 
-def build_common_replacements(club: Club, db: Session) -> dict[str, str | list[str]]:
-    dean_word = "Декан" if club.faculty.kind == FacultyKind.FACULTY else "Директор"
+def _submitter_block(club: Club, db: Session, *, override_faculty: Faculty | None = None, use_vrsp_chief: bool = False) -> tuple[str, str, str]:
+    """
+    Повертає (роль, абревіатура підрозділу, ПІБ) для розділу "Проєкт наказу
+    вносить". Типово це декан/директор власного факультету гуртка -- але
+    для заявок на додавання/вилучення співкерівника вносить наказ
+    декан/директор ТОГО підрозділу, звідки походить співкерівник, а якщо
+    такого підрозділу декілька -- Начальник ВРСП.
+    """
+    if use_vrsp_chief:
+        vrsp_chief = get_signatory(db, SignatoryRole.VRSP_CHIEF)
+        return ("Начальник ВРСП", "", vrsp_chief.full_name)
+    faculty = override_faculty or club.faculty
+    dean_word = "Декан" if faculty.kind == FacultyKind.FACULTY else "Директор"
+    return (dean_word, faculty.abbreviation, faculty.dean_full_name or "")
+
+
+def build_common_replacements(
+    club: Club, db: Session, *, submitter: tuple[str, str, str] | None = None
+) -> dict[str, str | list[str]]:
+    submitter_role, submitter_department, submitter_name = submitter or _submitter_block(club, db)
     signatory = get_signatory(db, SignatoryRole.ORDER)
     vrsp_chief = get_signatory(db, SignatoryRole.VRSP_CHIEF)
     hr_chief = get_signatory(db, SignatoryRole.HR_CHIEF)
     return {
         "<назва гуртка>": club.name,
         "<спрямування>": _direction_gent(club.direction),
-        "<Директор / декан>": dean_word,
-        "<назва факультету або навчально-наукового інституту в родовому відмінку>": club.faculty.abbreviation,
+        "<Директор / декан>": submitter_role,
+        "<назва факультету або навчально-наукового інституту в родовому відмінку>": submitter_department,
         "<Ім’я ПРІЗВИЩЕ>": [
             format_official_name(signatory.full_name),
-            format_official_name(club.faculty.dean_full_name or ""),
+            format_official_name(submitter_name),
             format_official_name(vrsp_chief.full_name),
             format_official_name(hr_chief.full_name),
         ],
@@ -141,6 +162,8 @@ def _rename_clauses(request: ClubRequest) -> list[str]:
 def _change_head_clauses(request: ClubRequest) -> list[str]:
     club = request.club
     direction_gent = _direction_gent(club.direction)
+    club_ref = f"«{club.name}» {direction_gent} спрямування"
+    is_mutual = request.head_change_mode == HeadChangeMode.MUTUAL
 
     remove_entries = [e for e in request.head_entries if e.action == ClubRequestHeadAction.REMOVE]
     add_entries = [e for e in request.head_entries if e.action == ClubRequestHeadAction.ADD]
@@ -149,14 +172,37 @@ def _change_head_clauses(request: ClubRequest) -> list[str]:
     for entry in remove_entries:
         head = entry.existing_head
         piece = _head_position_and_department_accs(head.full_name, head.position_label, head.position_type, head.department)
-        clauses.append(f"Зняти {piece} з посади керівника гуртка «{club.name}» {direction_gent} спрямування.")
+        if is_mutual:
+            clauses.append(f"Зняти {piece} з посади керівника гуртка {club_ref}.")
+        else:
+            clauses.append(f"Звільнити {piece} від обов’язків керівника гуртка {club_ref}.")
     for entry in add_entries:
         piece = _head_position_and_department_accs(entry.full_name, entry.position_label, entry.position_type, entry.department)
-        clauses.append(
-            f"Призначити {piece} керівником гуртка «{club.name}» {direction_gent} спрямування без додаткової оплати (за згодою)."
-        )
+        role_word = "керівником" if is_mutual else "співкерівником"
+        clauses.append(f"Призначити {piece} {role_word} гуртка {club_ref} без додаткової оплати (за згодою).")
     clauses.append(CONTROL_CLAUSE)
     return clauses
+
+
+def _change_head_submitter(request: ClubRequest, db: Session) -> tuple[str, str, str] | None:
+    """
+    Для mutual-заміни вносить наказ декан/директор власного факультету
+    гуртка (типова поведінка, submitter=None). Для додавання/вилучення
+    співкерівника -- декан/директор факультету, звідки походить
+    співкерівник; якщо співкерівників декілька -- Начальник ВРСП.
+    """
+    if request.head_change_mode == HeadChangeMode.MUTUAL:
+        return None
+
+    action = ClubRequestHeadAction.ADD if request.head_change_mode == HeadChangeMode.ADD else ClubRequestHeadAction.REMOVE
+    entries = [e for e in request.head_entries if e.action == action]
+    departments = [
+        (e.department if action == ClubRequestHeadAction.ADD else e.existing_head.department) for e in entries
+    ]
+
+    if len(departments) == 1 and departments[0] is not None:
+        return _submitter_block(request.club, db, override_faculty=departments[0].faculty)
+    return _submitter_block(request.club, db, use_vrsp_chief=True)
 
 
 def _close_clauses(request: ClubRequest) -> list[str]:
@@ -191,7 +237,12 @@ def render_create_order_docx(club: Club, db: Session) -> docx.document.Document:
 
 def render_request_order_docx(request: ClubRequest, db: Session) -> docx.document.Document:
     club = request.club
-    replacements = build_common_replacements(club, db)
-    clauses = _clauses_for_request(request)
+    submitter = None
     template_path = TEMPLATE_FILES[request.type]
+    if request.type == RequestType.CHANGE_HEAD:
+        submitter = _change_head_submitter(request, db)
+        if request.head_change_mode != HeadChangeMode.MUTUAL:
+            template_path = CHANGE_HEAD_COHEAD_TEMPLATE_FILE
+    replacements = build_common_replacements(club, db, submitter=submitter)
+    clauses = _clauses_for_request(request)
     return fill_order_template(template_path, replacements, clauses)

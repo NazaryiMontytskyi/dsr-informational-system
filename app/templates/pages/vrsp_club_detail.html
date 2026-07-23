@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "macros/pdf_viewer.html" as pdf_viewer %}
 {% block title %}{{ club.name }} — ВРСП{% endblock %}
 {% block content %}
 <a href="/vrsp/clubs?status={{ club.status.value }}" class="btn btn-sm btn-link mb-2">← Назад до списку</a>
@@ -34,9 +35,8 @@
 <div class="card mb-3">
     <div class="card-body">
         <h5 class="card-title">Документи</h5>
-        <a class="btn btn-outline-secondary btn-sm me-2" href="/clubs/{{ club.id }}/order.pdf" target="_blank">Наказ (PDF)</a>
-        <a class="btn btn-outline-secondary btn-sm me-2" href="/clubs/{{ club.id }}/order.docx">Наказ (.docx)</a>
-        <a class="btn btn-outline-secondary btn-sm" href="/clubs/{{ club.id }}/regulation.pdf" target="_blank">Положення (PDF)</a>
+        <a class="btn btn-outline-secondary btn-sm mb-2" href="/clubs/{{ club.id }}/order.docx">Наказ (.docx)</a>
+        {{ pdf_viewer.pdf_tabs("vrsp-club-" ~ club.id, "/clubs/" ~ club.id ~ "/order.pdf", "/clubs/" ~ club.id ~ "/regulation.pdf") }}
     </div>
 </div>
 
@@ -88,5 +88,4 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}

@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Звіт гуртка «{{ report.club.name }}»{% endblock %}
+{% block content %}
+<a href="{{ back_url }}" class="btn btn-sm btn-link mb-2">← Назад</a>
+<h2 class="mb-1">Звіт гуртка «{{ report.club.name }}»</h2>
+<p class="text-muted">{{ report.session.title }} · подано {{ report.submitted_at.strftime("%d.%m.%Y %H:%M") }} ({{ report.submitted_by.full_name }})</p>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">1. Учасники гуртка</h5>
+        {% if not report.participants %}
+        <p class="text-muted mb-0">Не вказано.</p>
+        {% else %}
+        <table class="table table-sm mb-0">
+            <thead><tr><th>ПІБ</th><th>Курс</th><th>Шифр групи</th><th>Рівень</th><th>Підрозділ</th></tr></thead>
+            <tbody>
+                {% for p in report.participants %}
+                <tr>
+                    <td>{{ p.full_name }}</td>
+                    <td>{{ p.course | course_label }}</td>
+                    <td>{{ p.group_code }}</td>
+                    <td>{{ p.education_level | education_level_label }}</td>
+                    <td>{{ p.faculty.abbreviation }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">2. Проєкти та активності</h5>
+        <p class="mb-0">{{ report.projects_activities or "—" }}</p>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">3. Заходи участі</h5>
+        {% if not report.events %}
+        <p class="text-muted mb-0">Не вказано.</p>
+        {% else %}
+        <table class="table table-sm mb-0">
+            <thead><tr><th>Назва</th><th>Тип</th><th>Опис досягнень</th></tr></thead>
+            <tbody>
+                {% for e in report.events %}
+                <tr>
+                    <td>{{ e.name }}</td>
+                    <td>{{ e.type_label }}</td>
+                    <td>{{ e.achievements_description }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">4. Досягнення членів гуртка</h5>
+        {% if not report.achievements %}
+        <p class="text-muted mb-0">Не вказано.</p>
+        {% else %}
+        <table class="table table-sm mb-0">
+            <thead><tr><th>ПІБ</th><th>Опис досягнень</th></tr></thead>
+            <tbody>
+                {% for a in report.achievements %}
+                <tr>
+                    <td>{{ a.participant_full_name }}</td>
+                    <td>{{ a.description }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">5. Труднощі</h5>
+        <p class="mb-0">{{ report.difficulties or "—" }}</p>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">6. Заохочення до участі</h5>
+        <p class="mb-0">{{ report.encouragement or "—" }}</p>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">7. Плани на наступний семестр</h5>
+        <p class="mb-0">{{ report.plans or "—" }}</p>
+    </div>
+</div>
+{% endblock %}

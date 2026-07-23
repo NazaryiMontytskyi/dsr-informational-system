@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Звітування{% endblock %}
+{% block content %}
+<h2 class="mb-3">Звітування</h2>
+
+{% if not has_clubs %}
+<p class="text-muted">У вас поки немає гуртків.</p>
+{% elif not rows %}
+<p class="text-muted">Сесій звітування ще не було.</p>
+{% else %}
+<table class="table bg-white">
+    <thead><tr><th>Сесія</th><th>Період</th><th>Гурток</th><th>Статус</th><th></th></tr></thead>
+    <tbody>
+        {% for row in rows %}
+        <tr>
+            <td>{{ row.session.title }}</td>
+            <td>{{ row.session.start_date.strftime("%d.%m.%Y") }} – {{ row.session.end_date.strftime("%d.%m.%Y") }}</td>
+            <td>{{ row.club.name }}</td>
+            <td>
+                {% if row.submitted %}
+                <span class="badge text-bg-success">Звіт подано</span>
+                {% elif row.session.is_active %}
+                <span class="badge text-bg-warning">Очікує звіту</span>
+                {% elif row.session.is_upcoming %}
+                <span class="badge text-bg-secondary">Заплановано</span>
+                {% else %}
+                <span class="badge text-bg-secondary">Не подано</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if row.submitted %}
+                <a class="btn btn-sm btn-outline-primary" href="/my/reports/{{ row.session.id }}/{{ row.club.id }}">Переглянути</a>
+                {% elif row.session.is_active %}
+                <a class="btn btn-sm btn-primary" href="/my/reports/{{ row.session.id }}/{{ row.club.id }}/fill">Заповнити звіт</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

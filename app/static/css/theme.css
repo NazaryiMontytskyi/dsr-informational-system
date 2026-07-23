@@ -1,0 +1,219 @@
+/*
+ * Тема оформлення за брендбуком КПІ ім. Ігоря Сікорського
+ * (https://brand.kpi.ua/brandbook/): шрифт Exo 2, синьо-навигаційна
+ * палітра сайту kpi.ua. Стосується лише інтерфейсу застосунку --
+ * накази й Положення генеруються окремо, шрифтом Times New Roman.
+ */
+
+@font-face {
+    font-family: "Exo 2";
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("/static/fonts/Exo2-Variable-cyrillic.woff2") format("woff2");
+    unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+@font-face {
+    font-family: "Exo 2";
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("/static/fonts/Exo2-Variable-latin.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2122;
+}
+
+:root {
+    --kpi-navy: #1c396e;
+    --kpi-blue: #008acf;
+    --kpi-blue-dark: #0d5690;
+    --kpi-blue-deep: #004f7f;
+    --kpi-orange: #ec6605;
+    --kpi-orange-dark: #cd5a0a;
+    --kpi-gray: #958f93;
+    --kpi-gray-light: #bbbbbb;
+    --kpi-bg: #f3f4f9;
+    --kpi-text: #3d3d3d;
+}
+
+* {
+    font-family: "Exo 2", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+    background-color: var(--kpi-bg);
+    color: var(--kpi-text);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    color: var(--kpi-navy);
+}
+
+.card-title {
+    font-weight: 600;
+    color: var(--kpi-navy);
+}
+
+a {
+    color: var(--kpi-blue);
+}
+a:hover {
+    color: var(--kpi-blue-dark);
+}
+
+/* --- навігація --- */
+.navbar.bg-dark {
+    background-color: var(--kpi-navy) !important;
+    box-shadow: 0 2px 12px rgba(28, 57, 110, .18);
+}
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: .02em;
+}
+
+/* --- картки --- */
+.card {
+    border: 1px solid rgba(28, 57, 110, .08);
+    box-shadow: 0 2px 12px rgba(28, 57, 110, .06);
+}
+
+/* --- кнопки --- */
+.btn {
+    font-weight: 500;
+    border-radius: .55rem;
+}
+.btn-primary {
+    --bs-btn-bg: var(--kpi-blue);
+    --bs-btn-border-color: var(--kpi-blue);
+    --bs-btn-hover-bg: var(--kpi-blue-dark);
+    --bs-btn-hover-border-color: var(--kpi-blue-dark);
+    --bs-btn-active-bg: var(--kpi-blue-deep);
+    --bs-btn-active-border-color: var(--kpi-blue-deep);
+    --bs-btn-focus-shadow-rgb: 0, 138, 207;
+}
+.btn-outline-primary {
+    --bs-btn-color: var(--kpi-blue);
+    --bs-btn-border-color: var(--kpi-blue);
+    --bs-btn-hover-bg: var(--kpi-blue);
+    --bs-btn-hover-border-color: var(--kpi-blue);
+    --bs-btn-active-bg: var(--kpi-blue);
+    --bs-btn-active-border-color: var(--kpi-blue);
+    --bs-btn-focus-shadow-rgb: 0, 138, 207;
+}
+.btn-outline-light:hover {
+    color: var(--kpi-navy);
+}
+
+/* акцентна кнопка (кольору "секондарі" бренду) -- для головних CTA на лендінгу */
+.btn-kpi-accent {
+    background-color: var(--kpi-orange);
+    border-color: var(--kpi-orange);
+    color: #fff;
+}
+.btn-kpi-accent:hover {
+    background-color: var(--kpi-orange-dark);
+    border-color: var(--kpi-orange-dark);
+    color: #fff;
+}
+
+.text-primary {
+    color: var(--kpi-blue) !important;
+}
+.bg-primary {
+    background-color: var(--kpi-blue) !important;
+}
+.border-primary {
+    border-color: var(--kpi-blue) !important;
+}
+
+/* --- форми --- */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--kpi-blue);
+    box-shadow: 0 0 0 .25rem rgba(0, 138, 207, .2);
+}
+.form-check-input:checked {
+    background-color: var(--kpi-blue);
+    border-color: var(--kpi-blue);
+}
+.form-check-input:focus {
+    border-color: var(--kpi-blue);
+    box-shadow: 0 0 0 .2rem rgba(0, 138, 207, .2);
+}
+
+/* --- бургер-меню (offcanvas) --- */
+.offcanvas.text-bg-dark {
+    background-color: var(--kpi-navy) !important;
+}
+.navbar-toggler {
+    border-color: rgba(255, 255, 255, .35);
+}
+.navbar-toggler:focus {
+    box-shadow: 0 0 0 .2rem rgba(0, 138, 207, .4);
+}
+
+/* --- вбудований перегляд PDF (наказ / Положення) --- */
+.nav-tabs {
+    border-bottom-color: var(--kpi-gray-light);
+}
+.nav-tabs .nav-link {
+    color: var(--kpi-text);
+    border: 1px solid transparent;
+}
+.nav-tabs .nav-link.active {
+    color: var(--kpi-navy);
+    font-weight: 600;
+    border-color: var(--kpi-gray-light) var(--kpi-gray-light) #fff;
+}
+.kpi-pdf-tab-content {
+    border: 1px solid var(--kpi-gray-light);
+    border-top: none;
+    border-radius: 0 0 .5rem .5rem;
+    padding: .5rem;
+}
+.kpi-pdf-frame {
+    display: block;
+    width: 100%;
+    height: 80vh;
+    border: 0;
+    border-radius: .35rem;
+}
+
+/* --- таблиці --- */
+.table thead th {
+    color: var(--kpi-navy);
+    border-bottom-width: 2px;
+}
+
+/* --- лендінг --- */
+.kpi-hero {
+    background: linear-gradient(135deg, var(--kpi-navy) 0%, var(--kpi-blue-dark) 55%, var(--kpi-blue) 100%);
+    color: #fff;
+    border-radius: 1rem;
+    padding: 3.5rem 2.5rem;
+}
+.kpi-hero h1 {
+    color: #fff;
+    font-weight: 700;
+}
+.kpi-hero p {
+    color: rgba(255, 255, 255, .85);
+    font-size: 1.1rem;
+}
+.kpi-landing-logo {
+    height: 160px;
+    width: auto;
+}
+.kpi-feature-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: .75rem;
+    background: rgba(0, 138, 207, .1);
+    color: var(--kpi-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+}

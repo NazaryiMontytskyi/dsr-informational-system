@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}{{ session.title }} — звітування{% endblock %}
+{% block content %}
+<a href="/vrsp/reports" class="btn btn-sm btn-link mb-2">← Усі сесії</a>
+<h2 class="mb-1">{{ session.title }}</h2>
+<p class="text-muted">
+    Період: {{ session.start_date.strftime("%d.%m.%Y") }} – {{ session.end_date.strftime("%d.%m.%Y") }}
+    {% if session.is_active %}<span class="badge text-bg-success">Активна</span>
+    {% elif session.is_upcoming %}<span class="badge text-bg-secondary">Заплановано</span>
+    {% else %}<span class="badge text-bg-secondary">Завершена</span>{% endif %}
+</p>
+
+{% if not session.reports %}
+<p class="text-muted">Звітів у цій сесії ще не подано.</p>
+{% else %}
+<table class="table bg-white">
+    <thead><tr><th>Гурток</th><th>Подано</th><th></th></tr></thead>
+    <tbody>
+        {% for r in session.reports %}
+        <tr>
+            <td>{{ r.club.name }}</td>
+            <td>{{ r.submitted_at.strftime("%d.%m.%Y %H:%M") }}</td>
+            <td><a class="btn btn-sm btn-outline-primary" href="/vrsp/reports/{{ session.id }}/{{ r.id }}">Переглянути</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

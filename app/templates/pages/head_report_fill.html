@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}Заповнення звіту{% endblock %}
+{% block content %}
+<h2 class="mb-1">Звіт гуртка «{{ club.name }}»</h2>
+<p class="text-muted mb-4">{{ session.title }} ({{ session.start_date.strftime("%d.%m.%Y") }} – {{ session.end_date.strftime("%d.%m.%Y") }})</p>
+
+<form method="post" action="/my/reports/{{ session.id }}/{{ club.id }}/fill" id="report-form">
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">1. Список учасників гуртка з числа здобувачів</h5>
+            <div id="participants-container">
+                {% for i in range(1, 16) %}
+                <div class="row g-2 mb-2 participant-row {% if i > 1 %}d-none{% endif %}" id="participant-row-{{ i }}">
+                    <div class="col-md-3">
+                        <input type="text" name="participant_{{ i }}_full_name" class="form-control participant-name-input" placeholder="ПІБ" {% if i == 1 %}required{% endif %}>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="participant_{{ i }}_course" class="form-select">
+                            <option value="" selected disabled>Курс</option>
+                            {% for c in courses %}
+                            <option value="{{ c.value }}">{{ c | course_label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" name="participant_{{ i }}_group_code" class="form-control" placeholder="Шифр групи" maxlength="{{ group_code_max }}">
+                    </div>
+                    <div class="col-md-2">
+                        <select name="participant_{{ i }}_education_level" class="form-select">
+                            <option value="" selected disabled>Рівень</option>
+                            {% for l in education_levels %}
+                            <option value="{{ l.value }}">{{ l | education_level_label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="participant_{{ i }}_faculty_id" class="form-select">
+                            <option value="" selected disabled>Підрозділ</option>
+                            {% for f in faculties %}
+                            <option value="{{ f.id }}">{{ f.abbreviation }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="add-participant-btn">Додати учасника</button>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">2. Проєкти та активності учасників гуртка, реалізовані протягом семестру</h5>
+            <textarea name="projects_activities" class="form-control" rows="4" maxlength="{{ text_max }}"></textarea>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">3. Заходи, у яких брали участь члени гуртка</h5>
+            <div id="events-container">
+                {% for i in range(1, 11) %}
+                <div class="row g-2 mb-2 event-row {% if i > 1 %}d-none{% endif %}" id="event-row-{{ i }}">
+                    <div class="col-md-3">
+                        <input type="text" name="event_{{ i }}_name" class="form-control" placeholder="Назва заходу" maxlength="{{ event_name_max }}">
+                    </div>
+                    <div class="col-md-2">
+                        <select name="event_{{ i }}_type" class="form-select event-type-select" data-index="{{ i }}">
+                            <option value="" selected disabled>Тип заходу</option>
+                            {% for t in event_types %}
+                            <option value="{{ t.value }}">{{ t | event_type_label }}</option>
+                            {% endfor %}
+                            <option value="other">інше</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 event-type-custom d-none" id="event-type-custom-{{ i }}">
+                        <input type="text" name="event_{{ i }}_type_custom" class="form-control" placeholder="Вкажіть тип" maxlength="{{ event_type_custom_max }}">
+                    </div>
+                    <div class="col-md-5">
+                        <input type="text" name="event_{{ i }}_description" class="form-control" placeholder="Опис досягнень" maxlength="{{ text_max }}">
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="add-event-btn">Додати захід</button>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">4. Досягнення членів гуртка протягом семестру</h5>
+            <datalist id="participant-names-datalist"></datalist>
+            <div id="achievements-container">
+                {% for i in range(1, 16) %}
+                <div class="row g-2 mb-2 achievement-row {% if i > 1 %}d-none{% endif %}" id="achievement-row-{{ i }}">
+                    <div class="col-md-4">
+                        <input type="text" name="achievement_{{ i }}_full_name" class="form-control" list="participant-names-datalist" placeholder="ПІБ">
+                    </div>
+                    <div class="col-md-8">
+                        <input type="text" name="achievement_{{ i }}_description" class="form-control" placeholder="Опис досягнень" maxlength="{{ text_max }}">
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="add-achievement-btn">Додати досягнення</button>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">5. Труднощі під час здійснення діяльності</h5>
+            <textarea name="difficulties" class="form-control" rows="3" maxlength="{{ text_max }}"></textarea>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">6. Заходи заохочення до участі в гуртку</h5>
+            <textarea name="encouragement" class="form-control" rows="3" maxlength="{{ text_max }}"></textarea>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">7. Плани та задуми на наступний семестр</h5>
+            <textarea name="plans" class="form-control" rows="3" maxlength="{{ text_max }}"></textarea>
+        </div>
+    </div>
+
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="confirm-check" required>
+        <label class="form-check-label" for="confirm-check">Підтверджую, що інформація достовірна</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-lg">Відправити</button>
+</form>
+
+<script>
+    function makeAddRemove(prefix, max) {
+        let visible = 1;
+        document.getElementById("add-" + prefix + "-btn").addEventListener("click", function () {
+            if (visible >= max) return;
+            visible += 1;
+            document.getElementById(prefix + "-row-" + visible).classList.remove("d-none");
+            if (visible >= max) document.getElementById("add-" + prefix + "-btn").classList.add("d-none");
+        });
+    }
+    makeAddRemove("participant", 15);
+    makeAddRemove("event", 10);
+    makeAddRemove("achievement", 15);
+
+    document.querySelectorAll(".event-type-select").forEach(function (select) {
+        select.addEventListener("change", function () {
+            const custom = document.getElementById("event-type-custom-" + this.dataset.index);
+            custom.classList.toggle("d-none", this.value !== "other");
+        });
+    });
+
+    function refreshParticipantNames() {
+        const datalist = document.getElementById("participant-names-datalist");
+        datalist.innerHTML = "";
+        document.querySelectorAll(".participant-name-input").forEach(function (input) {
+            if (!input.value.trim()) return;
+            const opt = document.createElement("option");
+            opt.value = input.value.trim();
+            datalist.appendChild(opt);
+        });
+    }
+    document.querySelectorAll(".participant-name-input").forEach(function (input) {
+        input.addEventListener("input", refreshParticipantNames);
+    });
+</script>
+{% endblock %}

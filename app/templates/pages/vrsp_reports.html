@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Звітування — ВРСП{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Звітування гуртків</h2>
+    <a class="btn btn-primary" href="/vrsp/reports/new">Відкрити сесію збору звітів</a>
+</div>
+
+{% if not sessions %}
+<p class="text-muted">Сесій звітування ще не було.</p>
+{% else %}
+<table class="table bg-white">
+    <thead><tr><th>Сесія</th><th>Період</th><th>Статус</th><th>Звітів подано</th><th></th></tr></thead>
+    <tbody>
+        {% for s in sessions %}
+        <tr>
+            <td>{{ s.title }}</td>
+            <td>{{ s.start_date.strftime("%d.%m.%Y") }} – {{ s.end_date.strftime("%d.%m.%Y") }}</td>
+            <td>
+                {% if s.is_upcoming %}
+                <span class="badge text-bg-secondary">Заплановано</span>
+                {% elif s.is_active %}
+                <span class="badge text-bg-success">Активна</span>
+                {% else %}
+                <span class="badge text-bg-secondary">Завершена</span>
+                {% endif %}
+            </td>
+            <td>{{ s.reports | length }}</td>
+            <td><a class="btn btn-sm btn-outline-primary" href="/vrsp/reports/{{ s.id }}">Відкрити</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

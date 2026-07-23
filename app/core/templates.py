@@ -4,9 +4,13 @@ from app.core.config import BASE_DIR
 from app.db.models import (
     ClubStatus,
     DIRECTION_LABELS,
+    EDUCATION_LEVEL_LABELS,
+    EVENT_TYPE_LABELS,
     HeadChangeMode,
     RequestStatus,
     RequestType,
+    SEMESTER_LABELS,
+    STUDENT_COURSE_LABELS,
 )
 
 templates = Jinja2Templates(directory=str(BASE_DIR / "app" / "templates"))
@@ -60,8 +64,28 @@ def direction_label(direction) -> str:
     return DIRECTION_LABELS[direction]["nomn"]
 
 
+def semester_label(semester) -> str:
+    return SEMESTER_LABELS.get(semester, semester.value)
+
+
+def course_label(course) -> str:
+    return STUDENT_COURSE_LABELS.get(course, course.value)
+
+
+def education_level_label(level) -> str:
+    return EDUCATION_LEVEL_LABELS.get(level, level.value)
+
+
+def event_type_label(event_type) -> str:
+    return EVENT_TYPE_LABELS.get(event_type, event_type.value)
+
+
 templates.env.filters["status_badge"] = status_badge
 templates.env.filters["request_status_badge"] = request_status_badge
 templates.env.filters["request_type_label"] = request_type_label
 templates.env.filters["head_change_mode_label"] = head_change_mode_label
 templates.env.filters["direction_label"] = direction_label
+templates.env.filters["semester_label"] = semester_label
+templates.env.filters["course_label"] = course_label
+templates.env.filters["education_level_label"] = education_level_label
+templates.env.filters["event_type_label"] = event_type_label

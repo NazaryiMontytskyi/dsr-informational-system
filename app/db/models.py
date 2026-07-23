@@ -1,7 +1,7 @@
 import enum
 from datetime import date, datetime
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, String, Text
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -104,6 +104,76 @@ class RequestStatus(str, enum.Enum):
 class ClubRequestHeadAction(str, enum.Enum):
     ADD = "add"
     REMOVE = "remove"
+
+
+# ---------- BP-5: Звітування гуртка ----------
+
+class Semester(str, enum.Enum):
+    SPRING = "spring"   # весняний
+    AUTUMN = "autumn"    # осінній
+
+
+SEMESTER_LABELS: dict[Semester, str] = {
+    Semester.SPRING: "весняний",
+    Semester.AUTUMN: "осінній",
+}
+
+
+class StudentCourse(str, enum.Enum):
+    BACHELOR_1 = "bachelor_1"
+    BACHELOR_2 = "bachelor_2"
+    BACHELOR_3 = "bachelor_3"
+    BACHELOR_4 = "bachelor_4"
+    MASTER_1 = "master_1"
+    MASTER_2 = "master_2"
+    POSTGRAD_1 = "postgrad_1"
+    POSTGRAD_2 = "postgrad_2"
+    POSTGRAD_3 = "postgrad_3"
+    POSTGRAD_4 = "postgrad_4"
+
+
+STUDENT_COURSE_LABELS: dict[StudentCourse, str] = {
+    StudentCourse.BACHELOR_1: "1 курс бакалаврату",
+    StudentCourse.BACHELOR_2: "2 курс бакалаврату",
+    StudentCourse.BACHELOR_3: "3 курс бакалаврату",
+    StudentCourse.BACHELOR_4: "4 курс бакалаврату",
+    StudentCourse.MASTER_1: "1 курс магістратури",
+    StudentCourse.MASTER_2: "2 курс магістратури",
+    StudentCourse.POSTGRAD_1: "1 курс аспірантури",
+    StudentCourse.POSTGRAD_2: "2 курс аспірантури",
+    StudentCourse.POSTGRAD_3: "3 курс аспірантури",
+    StudentCourse.POSTGRAD_4: "4 курс аспірантури",
+}
+
+
+class EducationLevel(str, enum.Enum):
+    BACHELOR = "bachelor"
+    MASTER = "master"
+    POSTGRAD = "postgrad"
+
+
+EDUCATION_LEVEL_LABELS: dict[EducationLevel, str] = {
+    EducationLevel.BACHELOR: "бакалавр",
+    EducationLevel.MASTER: "магістр",
+    EducationLevel.POSTGRAD: "аспірант",
+}
+
+
+class EventType(str, enum.Enum):
+    CONFERENCE = "conference"
+    HACKATHON = "hackathon"
+    COMPETITION = "competition"
+    OLYMPIAD = "olympiad"
+    OTHER = "other"
+
+
+EVENT_TYPE_LABELS: dict[EventType, str] = {
+    EventType.CONFERENCE: "конференція",
+    EventType.HACKATHON: "хакатон",
+    EventType.COMPETITION: "конкурс",
+    EventType.OLYMPIAD: "олімпіада",
+    EventType.OTHER: "інше",
+}
 
 
 class User(Base):
@@ -311,3 +381,125 @@ class DocumentSignatory(Base):
     role: Mapped[SignatoryRole] = mapped_column(SAEnum(SignatoryRole, native_enum=False), unique=True)
     position_title: Mapped[str] = mapped_column(String(255), default="")
     full_name: Mapped[str] = mapped_column(String(255), default="")
+
+
+class ReportSession(Base):
+    """Сесія збору звітів гуртків за семестр (BP-5) -- відкриває ВРСП."""
+
+    __tablename__ = "report_sessions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    year: Mapped[int] = mapped_column(Integer)
+    semester: Mapped[Semester] = mapped_column(SAEnum(Semester, native_enum=False))
+    start_date: Mapped[date] = mapped_column(Date)
+    end_date: Mapped[date] = mapped_column(Date)
+
+    created_by_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    reports: Mapped[list["ClubReport"]] = relationship(back_populates="session", order_by="ClubReport.submitted_at")
+
+    @property
+    def is_active(self) -> bool:
+        today = date.today()
+        return self.start_date <= today <= self.end_date
+
+    @property
+    def is_upcoming(self) -> bool:
+        return date.today() < self.start_date
+
+    @property
+    def semester_label(self) -> str:
+        return SEMESTER_LABELS[self.semester]
+
+    @property
+    def title(self) -> str:
+        return f"{self.semester_label.capitalize()} семестр {self.year}"
+
+
+class ClubReport(Base):
+    """Звіт гуртка в межах сесії звітування (BP-5)."""
+
+    __tablename__ = "club_reports"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    session_id: Mapped[int] = mapped_column(ForeignKey("report_sessions.id"))
+    club_id: Mapped[int] = mapped_column(ForeignKey("clubs.id"))
+
+    projects_activities: Mapped[str] = mapped_column(Text, default="")
+    difficulties: Mapped[str] = mapped_column(Text, default="")
+    encouragement: Mapped[str] = mapped_column(Text, default="")
+    plans: Mapped[str] = mapped_column(Text, default="")
+
+    submitted_by_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    submitted_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    session: Mapped["ReportSession"] = relationship(back_populates="reports")
+    club: Mapped["Club"] = relationship()
+    submitted_by: Mapped["User"] = relationship()
+    participants: Mapped[list["ReportParticipant"]] = relationship(
+        back_populates="report", order_by="ReportParticipant.id"
+    )
+    events: Mapped[list["ReportEvent"]] = relationship(back_populates="report", order_by="ReportEvent.id")
+    achievements: Mapped[list["ReportAchievement"]] = relationship(
+        back_populates="report", order_by="ReportAchievement.id"
+    )
+
+
+class ReportParticipant(Base):
+    """Учасник гуртка з числа здобувачів, вказаний у звіті (BP-5, п.1)."""
+
+    __tablename__ = "report_participants"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    report_id: Mapped[int] = mapped_column(ForeignKey("club_reports.id"))
+    full_name: Mapped[str] = mapped_column(String(255))
+    course: Mapped[StudentCourse] = mapped_column(SAEnum(StudentCourse, native_enum=False))
+    group_code: Mapped[str] = mapped_column(String(7))
+    education_level: Mapped[EducationLevel] = mapped_column(SAEnum(EducationLevel, native_enum=False))
+    faculty_id: Mapped[int] = mapped_column(ForeignKey("faculties.id"))
+
+    report: Mapped["ClubReport"] = relationship(back_populates="participants")
+    faculty: Mapped["Faculty"] = relationship()
+
+    @property
+    def course_label(self) -> str:
+        return STUDENT_COURSE_LABELS[self.course]
+
+    @property
+    def education_level_label(self) -> str:
+        return EDUCATION_LEVEL_LABELS[self.education_level]
+
+
+class ReportEvent(Base):
+    """Захід (конференція/хакатон/конкурс/тощо), у якому брав участь гурток (BP-5, п.3)."""
+
+    __tablename__ = "report_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    report_id: Mapped[int] = mapped_column(ForeignKey("club_reports.id"))
+    name: Mapped[str] = mapped_column(String(100))
+    event_type: Mapped[EventType] = mapped_column(SAEnum(EventType, native_enum=False))
+    event_type_custom: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    achievements_description: Mapped[str] = mapped_column(Text)
+
+    report: Mapped["ClubReport"] = relationship(back_populates="events")
+
+    @property
+    def type_label(self) -> str:
+        if self.event_type == EventType.OTHER:
+            return self.event_type_custom or EVENT_TYPE_LABELS[EventType.OTHER]
+        return EVENT_TYPE_LABELS[self.event_type]
+
+
+class ReportAchievement(Base):
+    """Досягнення члена гуртка протягом семестру (BP-5, п.4)."""
+
+    __tablename__ = "report_achievements"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    report_id: Mapped[int] = mapped_column(ForeignKey("club_reports.id"))
+    participant_full_name: Mapped[str] = mapped_column(String(255))
+    description: Mapped[str] = mapped_column(Text)
+
+    report: Mapped["ClubReport"] = relationship(back_populates="achievements")
