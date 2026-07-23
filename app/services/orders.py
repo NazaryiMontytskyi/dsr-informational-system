@@ -22,7 +22,7 @@ from app.db.models import (
 )
 from app.services import dates_uk
 from app.services.docx_fill import fill_order_template
-from app.services.morphology import decline_all_words, decline_headword_phrase, decline_person_name, format_official_name
+from app.services.morphology import decline_all_words, decline_first_word_only, decline_person_name, format_official_name
 
 CONTROL_CLAUSE = "Контроль за виконанням цього наказу лишаю за собою."
 
@@ -56,7 +56,7 @@ def _head_position_and_department_accs(full_name: str, position_label: str, posi
         # "хвіст" у родовому відмінку (напр. "начальник відділу розвитку
         # студентського потенціалу департаменту студентського розвитку") --
         # відмінюємо лише перше ("головне") слово, решту лишаємо як є.
-        position_accs = decline_headword_phrase(position_label, "accs")
+        position_accs = decline_first_word_only(position_label, "accs")
         return f"{position_accs} {fullname_accs}"
     position_accs = decline_all_words(position_label, "accs")
     department_gent = department.genitive if department else ""

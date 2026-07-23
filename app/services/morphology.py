@@ -73,9 +73,9 @@ def _prefer_short_dative(word: str) -> str:
 
 
 def _inflect_word(word: str, case: str) -> str:
-    core = word.strip("«»\"'()")
+    core = word.strip("«»\"'(),")
     prefix = word[: len(word) - len(word.lstrip("«»\"'("))]
-    suffix = word[len(word.rstrip("«»\"'\")")) :]
+    suffix = word[len(word.rstrip("«»\"'\"),")) :]
     if not core:
         return word
 
@@ -216,7 +216,7 @@ def decline_headword_phrase(phrase: str, case: str) -> str:
             out.append(tok)
             continue
 
-        core = tok.strip("«»\"'()")
+        core = tok.strip("«»\"'(),")
         if not core:
             out.append(tok)
             continue
@@ -236,5 +236,27 @@ def decline_headword_phrase(phrase: str, case: str) -> str:
         else:
             # сполучники, прийменники тощо -- лишаємо як є, продовжуємо аналіз
             out.append(tok)
+
+    return " ".join(out)
+
+
+def decline_first_word_only(phrase: str, case: str) -> str:
+    """
+    Відмінює лише перше слово словосполучення -- решта лишається
+    незмінною завжди, без жодного аналізу. На відміну від
+    decline_headword_phrase, тут немає спроби визначити "де закінчується
+    називний відмінок": для словосполучень з ЄДИНИМ головним словом
+    (назви кафедр -- завжди "кафедра ...", довільний текст посади, який
+    вводить сама людина) така евристика зайва й навіть шкідлива --
+    трапляються слова-омографи (напр. "практики" -- родовий одн.
+    "практика" збігається з називним мн. "практик"), які pymorphy
+    розбирає як називний відмінок і хибно продовжує відмінювати "хвіст".
+    """
+    if not phrase or case == "nomn":
+        return phrase
+    tokens = _split_tokens(phrase)
+    if not tokens:
+        return phrase
+    return " ".join([_inflect_word(tokens[0], case)] + tokens[1:])
 
     return " ".join(out)
